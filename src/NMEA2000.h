@@ -2374,7 +2374,8 @@ public:
     void SendHeartbeat(bool force=false);
 
     // deprecated! SetAsDefault has no effect. Use function SetHeartbeatIntervalAndOffset.
-    void SetHeartbeatInterval(unsigned long interval, bool SetAsDefault=true, int iDev=-1) __attribute__ ((deprecated));
+    [[deprecated("SetAsDefault has no effect. Use function SetHeartbeatIntervalAndOffset")]]
+    void SetHeartbeatInterval(unsigned long interval, bool SetAsDefault=true, int iDev=-1);
 #endif
 
     /*********************************************************************//**

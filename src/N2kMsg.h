@@ -1,8 +1,8 @@
 /*
  * N2kMsg.h
- * 
+ *
  * Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -11,8 +11,8 @@
  * Software is furnished to do so, subject to the following conditions:
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -23,19 +23,19 @@
 
 /**************************************************************************//**
  *  \file   N2kMsg.h
- *  \brief  This File contains the class tN2kMsg and all necessary functions 
-            to handle a NMEA2000 Message
- * 
- * The class tN2kMsg holds all necessary data of an NMEA2000 message. An object 
- * of this class will be passed to the SetN2kPGNxxxx function and there it is 
- * "filled" with the corresponding data. To extract data out of a NMEA2000 
- * message, the ParseN2kPGNxxxx functions can be used.  
+ *  \brief  This File contains the class tN2kMsg and all necessary functions
+			to handle a NMEA2000 Message
+ *
+ * The class tN2kMsg holds all necessary data of an NMEA2000 message. An object
+ * of this class will be passed to the SetN2kPGNxxxx function and there it is
+ * "filled" with the corresponding data. To extract data out of a NMEA2000
+ * message, the ParseN2kPGNxxxx functions can be used.
  * As all the data on the NMEA2000 messages is stored in a byte array, there
- * are plenty of helper functions to inject or extract certain datatypes 
+ * are plenty of helper functions to inject or extract certain datatypes
  * in and out of this byte array.
- * 
+ *
  * \sa Parse and Set Function in \ref N2kMessages.h
- * 
+ *
  */
 
 #ifndef _tN2kMsg_H_
@@ -44,6 +44,8 @@
 #include "N2kStream.h"
 #include "N2kDef.h"
 #include <stdint.h>
+#include <string>
+#include <type_traits>
 
 /** \brief  Constant "Not Available" for a double value*/
 const double   N2kDoubleNA=-1e9;
@@ -1249,16 +1251,157 @@ public:
    * \param port      port where to stream, see \ref N2kStream
    */
   void SendInActisenseFormat(N2kStream *port) const;
+
+	template<typename T>
+	T valid_count(T value) const
+	{
+		constexpr T max_value{ std::numeric_limits<T>::max() };
+
+		return value <= max_value - 1 ? value : 0;
+	}
+
+	template <typename T>
+	using int_type = typename std::conditional_t<
+		std::is_enum_v<T>,
+		std::underlying_type<T>,
+		std::enable_if<std::is_integral_v<T>, T>>::type;
+
+	template <typename T>
+	constexpr T sign_extend(const T value, uint16_t width) const
+	{
+		static_assert(std::is_integral_v<T>, "T is not integral");
+		if constexpr (std::is_unsigned_v<T>) return value;
+
+		return ((static_cast<T>(1) << (width - 1)) & value) ? value | ((~static_cast<T>(0)) >> (width - 1)) << (width - 1) : value;
+	}
+
+	template<typename T>
+	T read_value(uint16_t& offset, uint8_t width) const
+	{
+		static_assert(std::is_integral_v<int_type<T>>, "T is not integral");
+
+		using ut = std::make_unsigned_t<int_type<T>>;
+
+		constexpr uint8_t type_width = sizeof(int_type<T>) * 8;
+
+		const uint16_t byte_offset = offset / 8;
+		const ut bit_offset = offset % 8;
+
+		// Advance offset
+		offset += width;
+
+		//const ut value_mask = width == type_width ? std::numeric_limits<ut>::max() : ((ut(1) << width) - 1);
+		const ut value_mask = std::numeric_limits<ut>::max() >> (type_width - width);
+
+		// Optimization when the integratal type is less than 32 bits
+		if constexpr (sizeof(int_type<T>) == 1 || sizeof(int_type<T>) == 2)
+		{
+			// Shift and Mask
+			return static_cast<T>(sign_extend<int_type<T>>((*reinterpret_cast<const uint32_t*>(&Data[byte_offset]) >> bit_offset) & value_mask, width));
+		}
+
+		// Optimization when there is no byte boundary crossing
+		if (bit_offset == 0)
+		{
+			return static_cast<T>(sign_extend<int_type<T>>(*reinterpret_cast<const ut*>(&Data[byte_offset]) & value_mask, width));
+		}
+
+		ut value = (*reinterpret_cast<const ut*>(&Data[byte_offset]) >> bit_offset);
+
+		// Byte boundary crossing?
+		if (bit_offset + width > type_width)
+		{
+			value |= (*(reinterpret_cast<const ut*>(&Data[byte_offset + sizeof(T)])) << (type_width - bit_offset));
+		}
+
+		return static_cast<T>(sign_extend<int_type<T>>(value & value_mask, width));
+	}
+
+	template<typename T>
+	void write_value(uint16_t& offset, uint8_t width, T value)
+	{
+		static_assert(std::is_integral_v<int_type<T>>, "T is not integral");
+
+		using ut = std::make_unsigned_t<int_type<T>>;
+
+		constexpr uint8_t type_width = sizeof(int_type<T>) * 8;
+
+		const uint16_t byte_offset = offset / 8;
+		const ut bit_offset = offset % 8;
+
+		const ut value_mask = std::numeric_limits<ut>::max() >> (type_width - width);
+
+		// Optimization when the integratal type is less than 32 bits
+		if constexpr (sizeof(int_type<T>) == 1 || sizeof(int_type<T>) == 2)
+		{
+			// Shift and Mask
+			*reinterpret_cast<uint32_t*>(&Data[byte_offset]) = (*reinterpret_cast<const uint32_t*>(&Data[byte_offset]) & ~(value_mask << bit_offset)) | ((value & value_mask) << bit_offset);
+		}
+		else
+		{
+			// Optimization when there is no byte boundary crossing
+			if (bit_offset == 0)
+				*reinterpret_cast<ut*>(&Data[byte_offset]) = (*reinterpret_cast<const ut*>(&Data[byte_offset]) & ~value_mask) | (value & value_mask);
+			else
+			{
+				*reinterpret_cast<ut*>(&Data[byte_offset]) = (*reinterpret_cast<const ut*>(&Data[byte_offset]) & ~(value_mask << bit_offset)) | ((value & value_mask) << bit_offset);
+
+				// Byte boundary crossing?
+				if (bit_offset + width > type_width)
+				{
+					*reinterpret_cast<ut*>(&Data[byte_offset + sizeof(T)]) = (*reinterpret_cast<const ut*>(&Data[byte_offset + sizeof(T)]) & ~(value_mask >> (type_width - bit_offset))) | ((value & value_mask) >> (type_width - bit_offset));
+				}
+			}
+		}
+
+		// Advance offset
+		offset += width;
+	}
+
+	template <typename T>
+	static constexpr T max_number(const T bits)
+	{
+		constexpr uint8_t type_width = sizeof(T) * 8;
+
+		return std::numeric_limits<T>::max() >> (type_width - bits);
+	}
+
+	template <typename T>
+	constexpr T read_number(uint16_t& offset, const uint16_t width, T default_value = T{}) const
+	{
+		auto value = read_value<T>(offset, width);
+
+		if (value == max_number<T>(static_cast<T>(width)))
+			return default_value;
+
+		return value;
+	}
+
+	template <typename T>
+	constexpr double read_double(uint16_t& offset, const uint16_t width, double scale, double default_value = T{}) const
+	{
+		auto value = read_value<T>(offset, width);
+
+		if (value == max_number<T>(static_cast<T>(width)))
+			return default_value;
+
+		return value * scale;
+	}
+
+	float read_float(uint16_t& offset, float def = N2kFloatNA) const;
+
+	std::string read_string(uint16_t& offset, uint16_t width) const;
+	std::string read_string(uint16_t& offset) const;
 };
 
 /************************************************************************//**
  * \brief Print out a buffer (byte array)
- * 
+ *
  * \param port    port where to stream, see \ref N2kStream
- * \param len     Number of bytes to be printed 
+ * \param len     Number of bytes to be printed
  * \param pData   Pointer to the buffer
  * \param AddLF   true will add a LineFeed at the end
  */
-void PrintBuf(N2kStream *port, unsigned char len, const unsigned char *pData, bool AddLF=false);
+void PrintBuf(N2kStream *port, unsigned char len, const unsigned char* pData, bool AddLF = false);
 
 #endif

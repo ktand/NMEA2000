@@ -879,3 +879,34 @@ void tN2kMsg::SendInActisenseFormat(N2kStream *port) const {
     //PrintBuf(msgIdx,ActisenseMsgBuf);
     //Serial.print("\r\n");
 }
+
+float tN2kMsg::read_float(uint16_t& offset, const float def) const
+{
+	auto value = read_value<int32_t>(offset, sizeof(float));
+	const auto float_value = reinterpret_cast<float*>(&value);
+
+	return N2kIsNA(value) || isnan(*float_value) ? def : *float_value;
+}
+
+std::string tN2kMsg::read_string(uint16_t& offset, const uint16_t width) const
+{
+	const auto buffer = reinterpret_cast<const char*>(&Data[offset / 8]);
+
+	offset += width;
+
+	const char* end = std::find_if(buffer, buffer + width / 8, [](const char& ch) -> bool { return ch == 0x00 || ch == '@' || ch == static_cast<char>(0xff); });
+
+	return std::string(buffer, end);
+}
+
+std::string tN2kMsg::read_string(uint16_t& offset) const
+{
+	auto offset_byte = offset / 8;
+
+	const auto length = Data[offset_byte++];
+	const auto encoding = Data[offset_byte++];
+
+	offset += 16 + length * 8 * (encoding ? 1 : 2);
+
+	return std::string(reinterpret_cast<const char*>(&Data[offset_byte]), length * (encoding ? 1 : 2));
+}

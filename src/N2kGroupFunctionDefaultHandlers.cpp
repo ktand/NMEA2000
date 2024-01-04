@@ -288,7 +288,7 @@ bool tN2kGroupFunctionHandlerForPGN126996::HandleRequest(const tN2kMsg &N2kMsg,
     uint8_t field;
     tN2kGroupFunctionParameterErrorCode FieldErrorCode;
     bool FoundInvalidField=false;
-    size_t strSize=Max_N2kProductInfoStrLen;
+    const size_t strSize=Max_N2kProductInfoStrLen;
     char Query[strSize];
     char CurVal[strSize];
 
