@@ -26,6 +26,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 //#include <MemoryFree.h>  // For testing used memory
 
 #define Escape 0x10
