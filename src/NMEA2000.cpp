@@ -43,9 +43,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kFrameErrDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kFrameErrDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kFrameErrDbgStart(fmt, args,...)
-# define N2kFrameErrDbg(fmt, args,...)
-# define N2kFrameErrDbgln(fmt, args,...)
+# define N2kFrameErrDbgStart(fmt, args...)
+# define N2kFrameErrDbg(fmt, args...)
+# define N2kFrameErrDbgln(fmt, args...)
 #endif
 
 #if defined(NMEA2000_FRAME_IN_DEBUG)
@@ -53,9 +53,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kFrameInDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kFrameInDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kFrameInDbgStart(fmt, args,...)
-# define N2kFrameInDbg(fmt, args,...)
-# define N2kFrameInDbgln(fmt, args,...)
+# define N2kFrameInDbgStart(fmt, args...)
+# define N2kFrameInDbg(fmt, args...)
+# define N2kFrameInDbgln(fmt, args...)
 #endif
 
 #if defined(NMEA2000_FRAME_OUT_DEBUG)
@@ -63,9 +63,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kFrameOutDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kFrameOutDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kFrameOutDbgStart(fmt, args,...)
-# define N2kFrameOutDbg(fmt, args,...)
-# define N2kFrameOutDbgln(fmt, args,...)
+# define N2kFrameOutDbgStart(fmt, args...)
+# define N2kFrameOutDbg(fmt, args...)
+# define N2kFrameOutDbgln(fmt, args...)
 #endif
 
 #if defined(NMEA2000_MSG_DEBUG)
@@ -73,9 +73,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kMsgDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kMsgDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kMsgDbgStart(fmt, args,...)
-# define N2kMsgDbg(fmt, args,...)
-# define N2kMsgDbgln(fmt, args,...)
+# define N2kMsgDbgStart(fmt, args...)
+# define N2kMsgDbg(fmt, args...)
+# define N2kMsgDbgln(fmt, args...)
 #endif
 
 #if defined(NMEA2000_BUF_DEBUG)
@@ -88,8 +88,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kDbg(fmt, args,...)
-# define N2kDbgln(fmt, args,...)
+# define N2kDbg(fmt, args...)
+# define N2kDbgln(fmt, args...)
 #endif
 
 // #define NMEA2000_MEMORY_TEST 1

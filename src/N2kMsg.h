@@ -46,6 +46,7 @@
 #include <stdint.h>
 #include <string>
 #include <type_traits>
+#include <limits>
 
 /** \brief  Constant "Not Available" for a double value*/
 const double   N2kDoubleNA=-1e9;
