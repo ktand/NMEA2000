@@ -715,6 +715,11 @@ public:
   tN2kMsg(unsigned char _Source=15, unsigned char _Priority=6, unsigned long _PGN=0, int _DataLen=0);
 
   /************************************************************************//**
+   * Destuctor
+   */
+  virtual ~tN2kMsg() = default;
+
+  /************************************************************************//**
    * \brief Set the Parameter Group Number of the message   * 
    * \param _PGN Parameter Group Number [decimal]
    */
