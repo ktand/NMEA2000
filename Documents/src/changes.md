@@ -1,5 +1,47 @@
 # Changes to the Library {#changes}
 \tableofcontents
+
+## 23.02.2024
+
+- Compatibility change: Parsers ParseN2kPGN129809, ParseN2kPGN129810 and ParseN2kPGN129794 parameter list 
+	Added buffer length fields for Name, Callsign, and Destination
+- Fixed PGN 129809, 129810, 129794 string handling. AIS strings uses @ for padding.
+
+## 09.02.2024
+
+- Fix multiple spelling errors in comments. Thanks to garaminowicz.
+
+## 06.02.2024
+
+- Fix tPriorityRingBuffer. It did not freed values properly. tPriorityRingBuffer is used on tNMEA2000_Teensyx driver.
+- Ring buffer documentation update.
+- Fixed SetN2kPGN129284 and ParseN2kPGN129284. Changed OriginWaypointNumber and DestinationWaypointNumber parameter to uint32_t. This causes compatibility issue for users used ParseN2kPGN129284 and they have to update reference parameter type. Also if SetN2kPGN129284 was used with related parameters value N2kUint8NA, they must be updated to use N2kUint32NA
+- Moved OnOpen call on Open after setting Heartbeat interval and offset. If Heartbeat settings were set on OnOpen, settings were reset.
+- Added note to documentation for OnOpen about coming change.
+- Added lightning PGNs to fastpacket list.
+
+## 02.02.2024
+
+- Document update. Updates on document sources and code sources.
+
+## 22.01.2024
+
+- Fixed compiler error in case #define N2K_NO_HEARTBEAT_SUPPORT 1 has been used.
+- Fixed priority setting test on tN2kGroupFunctionHandler::HandleCommand and tN2kGroupFunctionHandlerForPGN126998::HandleCommand
+- Fixed Mode setting on SetN2kPGN129540
+
+## 21.01.2024
+
+- Document update. Updates on document sources and code sources.
+
+## 13.01.2024
+
+- Fixed PGN129539 reader and parser.
+- Added #include "N2kTypes.h" to N2kMaretron.h
+- Fixed PGN130316 default period information
+- Added missing methods to tRingBuffer template
+- Updated copyright
+
 ## 08.12.2023
 
 - Added entertainment fastpacket PGNs to fastpacket list.

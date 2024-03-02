@@ -1,7 +1,7 @@
 /*
 N2kDeviceList.cpp
 
-Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
+Copyright (c) 2015-2024 Timo Lappalainen, Kave Oy, www.kave.fi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -194,7 +194,7 @@ void tN2kDeviceList::HandleOther(const tN2kMsg &N2kMsg) {
     }
   }
   if ( HasPendingRequests ) return;
-  // We come up to here, if have requested all product infromation
+  // We come up to here, if have requested all product information
   // Start to request configuration information for devices.
   for ( int i=0; i<MaxDevices; i++) {
     if ( Sources[i]!=0 ) {
@@ -234,7 +234,7 @@ void tN2kDeviceList::HandleOther(const tN2kMsg &N2kMsg) {
 //*****************************************************************************
 void tN2kDeviceList::AddDevice(uint8_t Source){
   if ( RequestIsoAddressClaim(Source) ) {  // Request device information
-    SaveDevice(new tInternalDevice(0),Source); // We have now device on this source, so we will not do continuos query.
+    SaveDevice(new tInternalDevice(0),Source); // We have now device on this source, so we will not do continuous query.
     HasPendingRequests=true;
   }
 }

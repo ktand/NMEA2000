@@ -1,7 +1,7 @@
 /*
 N2kGroupFunctionDefaultHandlers.cpp
 
-Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
+Copyright (c) 2015-2024 Timo Lappalainen, Kave Oy, www.kave.fi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -52,12 +52,12 @@ bool tN2kGroupFunctionHandlerForPGN60928::HandleRequest(const tN2kMsg &N2kMsg,
 
   // Start to build response
   SetStartAcknowledge(N2kRMsg,N2kMsg.Source,PGN,
-                      N2kgfPGNec_Acknowledge,  // Always acknoledge for mandatory PGN
+                      N2kgfPGNec_Acknowledge,  // Always acknowledge for mandatory PGN
                       pec,
                       NumberOfParameterPairs);
   N2kRMsg.Destination=N2kMsg.Source;
 
-  if ( NumberOfParameterPairs>0 ) { // We need to filter accroding to fiels
+  if ( NumberOfParameterPairs>0 ) { // We need to filter according to fields
     int i;
     int Index;
     uint8_t field;
@@ -110,7 +110,7 @@ bool tN2kGroupFunctionHandlerForPGN60928::HandleRequest(const tN2kMsg &N2kMsg,
         }
       } else {
         // If there is any invalid field, we can not parse others, since we do not
-        // know right data length. So fo rest of the fields we can only send response below.
+        // know right data length. So for rest of the fields we can only send response below.
         FieldErrorCode=N2kgfpec_TemporarilyUnableToComply;
       }
       AddAcknowledgeParameter(N2kRMsg,i,FieldErrorCode);
@@ -198,7 +198,7 @@ bool tN2kGroupFunctionHandlerForPGN126464::HandleRequest(const tN2kMsg &N2kMsg,
                       NumberOfParameterPairs);
   N2kRMsg.Destination=N2kMsg.Source;
 
-  if ( NumberOfParameterPairs>0 ) { // We need to filter accroding to fiels
+  if ( NumberOfParameterPairs>0 ) { // We need to filter according to fields
     int i;
     int Index;
     uint8_t field;
@@ -282,7 +282,7 @@ bool tN2kGroupFunctionHandlerForPGN126996::HandleRequest(const tN2kMsg &N2kMsg,
                       NumberOfParameterPairs);
   N2kRMsg.Destination=N2kMsg.Source;
 
-  if ( NumberOfParameterPairs>0 ) { // We need to filter accroding to fiels
+  if ( NumberOfParameterPairs>0 ) { // We need to filter according to fields
     int i;
     int Index;
     uint8_t field;
@@ -337,7 +337,7 @@ bool tN2kGroupFunctionHandlerForPGN126996::HandleRequest(const tN2kMsg &N2kMsg,
         }
       } else {
         // If there is any invalid field, we can not parse others, since we do not
-        // know right data length. So fo rest of the fields we can only send response below.
+        // know right data length. So for rest of the fields we can only send response below.
         FieldErrorCode=N2kgfpec_TemporarilyUnableToComply;
       }
       AddAcknowledgeParameter(N2kRMsg,i,FieldErrorCode);
@@ -385,7 +385,7 @@ bool tN2kGroupFunctionHandlerForPGN126998::HandleRequest(const tN2kMsg &N2kMsg,
                       NumberOfParameterPairs);
   N2kRMsg.Destination=N2kMsg.Source;
 
-  if ( NumberOfParameterPairs>0 ) { // We need to filter accroding to fiels
+  if ( NumberOfParameterPairs>0 ) { // We need to filter according to fields
     int i;
     int Index;
     uint8_t field;
@@ -426,7 +426,7 @@ bool tN2kGroupFunctionHandlerForPGN126998::HandleRequest(const tN2kMsg &N2kMsg,
         }
       } else {
         // If there is any invalid field, we can not parse others, since we do not
-        // know right data length. So fo rest of the fields we can only send response below.
+        // know right data length. So for rest of the fields we can only send response below.
         FieldErrorCode=N2kgfpec_TemporarilyUnableToComply;
       }
       AddAcknowledgeParameter(N2kRMsg,i,FieldErrorCode);
@@ -463,7 +463,7 @@ bool tN2kGroupFunctionHandlerForPGN126998::HandleCommand(const tN2kMsg &N2kMsg, 
   tN2kGroupFunctionTransmissionOrPriorityErrorCode pec=N2kgfTPec_Acknowledge;
   tN2kMsg N2kRMsg;
 
- 		if (PrioritySetting != 0x08 || PrioritySetting != 0x0f || PrioritySetting != 0x09) pec = N2kgfTPec_TransmitIntervalOrPriorityNotSupported;
+ 		if ( !(PrioritySetting == 0x08 || PrioritySetting == 0x0f || PrioritySetting == 0x09) ) pec = N2kgfTPec_TransmitIntervalOrPriorityNotSupported;
 
     SetStartAcknowledge(N2kRMsg,N2kMsg.Source,PGN,
                         N2kgfPGNec_Acknowledge,  // What we actually should response as PGN error, if we have invalid field?
@@ -512,7 +512,7 @@ bool tN2kGroupFunctionHandlerForPGN126993::HandleRequest(const tN2kMsg &N2kMsg,
   
   if ( NumberOfParameterPairs==0 ) { // According to doc, there should not be any parameter pairs defined
     if ( TransmissionInterval==0xffffffff && TransmissionIntervalOffset==0xffff ) {
-      // Request for 126993 with 0xffffffff and 0xffff is prohibited so use default reponse.
+      // Request for 126993 with 0xffffffff and 0xffff is prohibited so use default response.
       return tN2kGroupFunctionHandler::HandleRequest(N2kMsg,TransmissionInterval,TransmissionIntervalOffset,NumberOfParameterPairs,iDev);
     }
     if ( pec==N2kgfTPec_Acknowledge ) {

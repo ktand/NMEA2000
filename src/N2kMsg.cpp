@@ -1,7 +1,7 @@
 /*
 N2kMsg.cpp
 
-Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
+Copyright (c) 2015-2024 Timo Lappalainen, Kave Oy, www.kave.fi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -210,8 +210,8 @@ void tN2kMsg::AddByte(unsigned char v) {
 }
 
 //*****************************************************************************
-void tN2kMsg::AddStr(const char *str, int len, bool UsePgm) {
-  SetBufStr(str,len,DataLen,Data,UsePgm,0xff);
+void tN2kMsg::AddStr(const char *str, int len, bool UsePgm, unsigned char fillChar) {
+  SetBufStr(str,len,DataLen,Data,UsePgm,fillChar);
 }
 
 //*****************************************************************************

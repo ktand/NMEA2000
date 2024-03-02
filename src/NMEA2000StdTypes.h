@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
+ * Copyright (c) 2015-2024 Timo Lappalainen, Kave Oy, www.kave.fi
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
  * into corresponding long names (once again, exactly as described by NMEA). 
  * 
  * 
- *  Ressources NMEA 2000 ®  Appendix B.2 -- Data Dictionary
+ *  Resources NMEA 2000 ®  Appendix B.2 -- Data Dictionary
  * 
  *  - https://hobbydocbox.com/Radio/106823300-Data-dictionary-report-by-number-national-marine-electronics-association-nmea-appendix-b-2-data-dictionary.html
  *  - https://www.nmea.org/Assets/20190613%20thruster%20amendment%20128006,%20128007,%20128008.pdf
@@ -298,10 +298,7 @@ enum tN2kDD305 {
 
 /*************************************************************************//**
  * \enum tN2kDD374
- * \brief Enumeration of ....
- * 
- * 
- * \todo Add proper documentation ...
+ * \brief Measurement delay source
  * 
  */
 enum tN2kDD374 {

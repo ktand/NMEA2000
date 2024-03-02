@@ -4,7 +4,7 @@
  *
  * The MIT License
  *
- * Copyright (c) 2017-2023 Thomas Sarlandie thomas@sarlandie.net
+ * Copyright (c) 2017-2024 Thomas Sarlandie thomas@sarlandie.net
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,7 @@ size_t N2kToSeasmart(const tN2kMsg &msg, uint32_t timestamp, char *buffer, size_
  * \param msg         Reference to a N2kMsg Object 
  * 
  * \return true -> Success
- * \return false -> an error occured
+ * \return false -> an error occurred
  */
 bool SeasmartToN2k(const char *buffer, uint32_t &timestamp, tN2kMsg &msg);
 

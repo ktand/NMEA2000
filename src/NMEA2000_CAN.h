@@ -1,7 +1,7 @@
 /*
  * NMEA2000_CAN.h
  *
- * Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
+ * Copyright (c) 2015-2024 Timo Lappalainen, Kave Oy, www.kave.fi
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -196,7 +196,7 @@ other related libraries. See origin for MBED port on <https://github.com/thomaso
   \brief Selector for the right board
 */
 
-// Select right CAN according to prosessor
+// Select right CAN according to processor
 #if !defined(USE_N2K_CAN)
 #if  defined(__MBED__)					// Placing mbed 1st in tree, as the following CPUs can also be used in MBED IDE
 #define USE_N2K_CAN USE_N2K_MBED_CAN

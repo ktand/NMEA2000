@@ -1,7 +1,7 @@
 /*
 N2kGroupFunction.cpp
 
-Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
+Copyright (c) 2015-2024 Timo Lappalainen, Kave Oy, www.kave.fi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -114,9 +114,9 @@ tN2kGroupFunctionTransmissionOrPriorityErrorCode tN2kGroupFunctionHandler::GetRe
                               bool UseOffsetLimits,
                               uint16_t OffsetMax
                               ) {
-  // In NMEA tool v2.0 tests "C.3.13.2  Expanded Acknowledgment Message Timing" tool is Old
-  // and does not know interval 0xFFFFFFFE=Restore Default Interval. So to pass
-  // that test, that has to be commented out
+  // On NMEA certification tests "C.3.13.2  Expanded Acknowledgment 
+  // Message Timing" old tool does not know interval 0xFFFFFFFE=Restore Default Interval
+  // and so fails test. Use new test tool sw version or comment that out.
   return ( (TransmissionInterval==0xFFFFFFFF     // No change
             || TransmissionInterval==0xFFFFFFFE  // Restore default
             || TransmissionInterval==0           // Turn off
@@ -147,7 +147,7 @@ bool tN2kGroupFunctionHandler::HandleRequest(const tN2kMsg &N2kMsg,
     tN2kGroupFunctionPGNErrorCode PGNec=(IsTxPGN?N2kgfPGNec_PGNTemporarilyNotAvailable:N2kgfPGNec_PGNNotSupported);
     tN2kGroupFunctionParameterErrorCode PARec=N2kgfpec_Acknowledge;
 
-    if ( PGNec==N2kgfPGNec_PGNNotSupported ) TORec=N2kgfTPec_Acknowledge; // Always acknoledge for unknown PGN.
+    if ( PGNec==N2kgfPGNec_PGNNotSupported ) TORec=N2kgfTPec_Acknowledge; // Always acknowledge for unknown PGN.
     if ( PGNec==N2kgfPGNec_PGNTemporarilyNotAvailable ) {
       if ( TORec==N2kgfTPec_TransmitIntervalOrPriorityNotSupported ) { // Acknowledge PGN for known PGN but for invalid priority
         PGNec=N2kgfPGNec_Acknowledge;
@@ -175,7 +175,7 @@ bool tN2kGroupFunctionHandler::HandleCommand(const tN2kMsg &N2kMsg, uint8_t Prio
     tN2kGroupFunctionTransmissionOrPriorityErrorCode TORec=N2kgfTPec_Acknowledge;
     tN2kGroupFunctionParameterErrorCode PARec=N2kgfpec_Acknowledge;
 
-		if (PrioritySetting != 0x08 || PrioritySetting != 0x0f || PrioritySetting != 0x09) TORec = N2kgfTPec_TransmitIntervalOrPriorityNotSupported;
+		if ( !(PrioritySetting == 0x08 || PrioritySetting == 0x0f || PrioritySetting == 0x09) ) TORec = N2kgfTPec_TransmitIntervalOrPriorityNotSupported;
 
     SendAcknowledge(pNMEA2000,N2kMsg.Source,iDev,GetPGNForGroupFunction(N2kMsg),
                     PGNec,

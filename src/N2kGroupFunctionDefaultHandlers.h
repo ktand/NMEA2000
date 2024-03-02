@@ -3,7 +3,7 @@
  *
  * The MIT License
  *
- * Copyright (c) 2015-2023 Timo Lappalainen, Kave Oy, www.kave.fi
+ * Copyright (c) 2015-2024 Timo Lappalainen, Kave Oy, www.kave.fi
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -134,7 +134,7 @@ class tN2kGroupFunctionHandlerForPGN126993 : public tN2kGroupFunctionHandler {
  * Provides product information onto the network that could be important
  * for determining quality of data coming from this product.
  * 
- * \note This is not mandatory, but prefered
+ * \note This is not mandatory, but preferred
  */
 class tN2kGroupFunctionHandlerForPGN126996 : public tN2kGroupFunctionHandler {
   protected:
@@ -157,7 +157,7 @@ class tN2kGroupFunctionHandlerForPGN126996 : public tN2kGroupFunctionHandler {
  * engine room location) of the device and installation notes (e.g.,
  * calibration data).
  * 
- * \note This is not mandatory, but prefered
+ * \note This is not mandatory, but preferred
  */
 class tN2kGroupFunctionHandlerForPGN126998 : public tN2kGroupFunctionHandler {
   protected:
