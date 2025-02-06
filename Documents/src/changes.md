@@ -1,6 +1,43 @@
 # Changes to the Library {#changes}
 \tableofcontents
 
+## 24.09.2024
+- Fixed UpdateHasPendingInformation() to use or (||) on test.
+- Fix no NAK for broadcast ISO Request
+- Fix do not call ISORqstHandler for specific messages, if request is broadcast
+- Added HandleCommand group function handler for heartbeat (PGN 126993)
+- Fixed 130316 temperature to unsigned by EricvanderVelde
+
+## 23.05.2024
+- Fixed GetVarStr to handle invalid length, thanks to EricvanderVelde.
+- Fixed PGN 129794 setter to set SID properly.
+- Fixed PGN 129540 to parse up to MaxSatelliteInfoCount, thanks to cosina.
+- CMakeLists.txt update by Dirlay.
+
+## 25.03.2024
+- Added PGN 127510
+- Added PGN 127750
+- Modidified AIS PGN PGN 129038, 129039, 129794, 129809, and 129810 to include AIS Transceiver Info and SID (where applicable)
+
+## 25.03.2024
+
+- Fix for ParseN2kPGN129810 parameter list.
+- Fixed SetN2kPGN129810 - AIS spare must be 0
+- Forced transceiver information on SetN2kPGN129810 to "channel B VDL transmission"
+- Fixed SetAISStr on N2kMsg.cpp
+
+## 06.03.2024
+
+-- reduced memory footprint for N2kMsg::AddAISStr
+-- bumped library version
+-- Ensure that strings added by N2kMsg::AddAISStr are 6 bit ASCII ITU-R M.1371-1 table 14 compliant
+
+## 26.02.2024
+
+- changed (char *) arguments to (const char *) in Set functions for PGN 129809, 129810, 129794
+- Added AddAISStr() method to N2kMsg class which filters AIS strings to make complient with ITU-R M.1371-1
+- modified Set functions for PGN 129809, 129810, 129794 to use AddAISStr()
+
 ## 23.02.2024
 
 - Compatibility change: Parsers ParseN2kPGN129809, ParseN2kPGN129810 and ParseN2kPGN129794 parameter list 
