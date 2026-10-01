@@ -27,6 +27,8 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+#include <cmath>
+#include <cstring>
 #include <ctype.h>
 //#include <MemoryFree.h>  // For testing used memory
 
@@ -1175,33 +1177,56 @@ void tN2kMsg::SendInActisenseFormat(N2kStream *port) const {
     //Serial.print("\r\n");
 }
 
-float tN2kMsg::read_float(uint16_t& offset, const float def) const
+float tN2kMsg::read_float(uint16_t& offset, float def) const
 {
-	auto value = read_value<int32_t>(offset, sizeof(float));
-	const auto float_value = reinterpret_cast<float*>(&value);
+	const auto bits = read_value<uint32_t>(offset, 32);
+	float value;
+	std::memcpy(&value, &bits, sizeof(value));
 
-	return N2kIsNA(value) || isnan(*float_value) ? def : *float_value;
+	return std::isnan(value) ? def : value;
 }
 
 std::string tN2kMsg::read_string(uint16_t& offset, const uint16_t width) const
 {
-	const auto buffer = reinterpret_cast<const char*>(&Data[offset / 8]);
-
+	const uint16_t first = offset / 8;
 	offset += width;
 
-	const char* end = std::find_if(buffer, buffer + width / 8, [](const char& ch) -> bool { return ch == 0x00 || ch == '@' || ch == static_cast<char>(0xff); });
-
-	return std::string(buffer, end);
+	std::string text;
+	for (uint16_t i = 0; i < width / 8; ++i)
+	{
+		const uint16_t index = first + i;
+		if (index >= DataLen || index >= MaxDataLen)
+		{
+			break;
+		}
+		const unsigned char ch = Data[index];
+		if (ch == 0x00 || ch == '@' || ch == 0xff)
+		{
+			break;
+		}
+		text.push_back(static_cast<char>(ch));
+	}
+	return text;
 }
 
 std::string tN2kMsg::read_string(uint16_t& offset) const
 {
-	auto offset_byte = offset / 8;
+	const uint16_t first = offset / 8;
+	const uint8_t length = field_byte(first);
+	const uint8_t encoding = field_byte(first + 1);
 
-	const auto length = Data[offset_byte++];
-	const auto encoding = Data[offset_byte++];
+	if (length < 2 || length == 0xff || encoding > 1)
+	{
+		offset = static_cast<uint16_t>(DataLen * 8);
+		return {};
+	}
 
-	offset += 16 + length * 8 * (encoding ? 1 : 2);
+	offset += length * 8;
 
-	return std::string(reinterpret_cast<const char*>(&Data[offset_byte]), length * (encoding ? 1 : 2));
+	std::string text;
+	for (uint16_t index = first + 2; index < first + length && index < DataLen && index < MaxDataLen; ++index)
+	{
+		text.push_back(static_cast<char>(Data[index]));
+	}
+	return text;
 }

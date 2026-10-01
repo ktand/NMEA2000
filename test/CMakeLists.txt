@@ -46,3 +46,11 @@ add_executable(N2kCZoneTests
 target_link_libraries(N2kCZoneTests catch)
 target_link_libraries(N2kCZoneTests nmea2000)
 add_test(N2kCZone N2kCZoneTests)
+add_executable(N2kMsgBitFieldTests
+  N2kMsgBitFieldTest.cpp
+  millis.cpp
+)
+
+target_link_libraries(N2kMsgBitFieldTests catch)
+target_link_libraries(N2kMsgBitFieldTests nmea2000)
+add_test(N2kMsgBitField N2kMsgBitFieldTests)

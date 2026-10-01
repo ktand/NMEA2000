@@ -1392,57 +1392,68 @@ public:
 		std::underlying_type<T>,
 		std::enable_if<std::is_integral_v<T>, T>>::type;
 
+	// Sign-extends the low `width` bits of `value` (two's complement) for a
+	// signed T; an unsigned T is returned as is. Done on the unsigned type,
+	// so no negative value is ever shifted.
 	template <typename T>
 	constexpr T sign_extend(const T value, uint16_t width) const
 	{
 		static_assert(std::is_integral_v<T>, "T is not integral");
-		if constexpr (std::is_unsigned_v<T>) return value;
-
-		return ((static_cast<T>(1) << (width - 1)) & value) ? value | ((~static_cast<T>(0)) >> (width - 1)) << (width - 1) : value;
+		if constexpr (std::is_unsigned_v<T>)
+		{
+			return value;
+		}
+		else
+		{
+			using ut = std::make_unsigned_t<T>;
+			const ut raw = static_cast<ut>(value);
+			if (width == 0 || width >= sizeof(T) * 8 || ((raw >> (width - 1)) & 1u) == 0)
+			{
+				return value;
+			}
+			return static_cast<T>(static_cast<ut>(raw | static_cast<ut>(~((ut{1} << width) - 1u))));
+		}
 	}
 
+	// A data byte as received: past the message's data (a sender using an
+	// older, shorter layout) it reads as 0xff, "not available", never as
+	// whatever the buffer held before or beyond it.
+	uint8_t field_byte(const uint16_t index) const
+	{
+		return index < DataLen && index < MaxDataLen ? Data[index] : 0xff;
+	}
+
+	// Reads a `width`-bit field (1 to the bits of T) starting `offset` bits
+	// into the data, least significant bit first as NMEA 2000 packs them,
+	// sign-extended for a signed T, and advances `offset` past it. Byte by
+	// byte: no assumptions about alignment, aliasing or the buffer's end.
 	template<typename T>
 	T read_value(uint16_t& offset, uint8_t width) const
 	{
 		static_assert(std::is_integral_v<int_type<T>>, "T is not integral");
 
-		using ut = std::make_unsigned_t<int_type<T>>;
+		using st = int_type<T>;
+		using ut = std::make_unsigned_t<st>;
 
-		constexpr uint8_t type_width = sizeof(int_type<T>) * 8;
+		ut value = 0;
+		for (uint8_t taken = 0; taken < width;)
+		{
+			const uint16_t bit = offset + taken;
+			const uint8_t shift = bit % 8;
+			const uint8_t count = (8 - shift) < (width - taken) ? (8 - shift) : (width - taken);
+			const ut bits = static_cast<ut>((field_byte(bit / 8) >> shift) & ((1u << count) - 1u));
+			value = static_cast<ut>(value | static_cast<ut>(bits << taken));
+			taken += count;
+		}
 
-		const uint16_t byte_offset = offset / 8;
-		const ut bit_offset = offset % 8;
-
-		// Advance offset
 		offset += width;
-
-		//const ut value_mask = width == type_width ? std::numeric_limits<ut>::max() : ((ut(1) << width) - 1);
-		const ut value_mask = std::numeric_limits<ut>::max() >> (type_width - width);
-
-		// Optimization when the integratal type is less than 32 bits
-		if constexpr (sizeof(int_type<T>) == 1 || sizeof(int_type<T>) == 2)
-		{
-			// Shift and Mask
-			return static_cast<T>(sign_extend<int_type<T>>((*reinterpret_cast<const uint32_t*>(&Data[byte_offset]) >> bit_offset) & value_mask, width));
-		}
-
-		// Optimization when there is no byte boundary crossing
-		if (bit_offset == 0)
-		{
-			return static_cast<T>(sign_extend<int_type<T>>(*reinterpret_cast<const ut*>(&Data[byte_offset]) & value_mask, width));
-		}
-
-		ut value = (*reinterpret_cast<const ut*>(&Data[byte_offset]) >> bit_offset);
-
-		// Byte boundary crossing?
-		if (bit_offset + width > type_width)
-		{
-			value |= (*(reinterpret_cast<const ut*>(&Data[byte_offset + sizeof(T)])) << (type_width - bit_offset));
-		}
-
-		return static_cast<T>(sign_extend<int_type<T>>(value & value_mask, width));
+		return static_cast<T>(sign_extend<st>(static_cast<st>(value), width));
 	}
 
+	// Writes the low `width` bits of `value` as a field starting `offset`
+	// bits into the data (the other bits of the bytes it shares are kept),
+	// extends DataLen to cover it, and advances `offset` past it. Bits past
+	// the buffer are dropped.
 	template<typename T>
 	void write_value(uint16_t& offset, uint8_t width, T value)
 	{
@@ -1450,37 +1461,26 @@ public:
 
 		using ut = std::make_unsigned_t<int_type<T>>;
 
-		constexpr uint8_t type_width = sizeof(int_type<T>) * 8;
-
-		const uint16_t byte_offset = offset / 8;
-		const ut bit_offset = offset % 8;
-
-		const ut value_mask = std::numeric_limits<ut>::max() >> (type_width - width);
-
-		// Optimization when the integratal type is less than 32 bits
-		if constexpr (sizeof(int_type<T>) == 1 || sizeof(int_type<T>) == 2)
+		const ut raw = static_cast<ut>(static_cast<int_type<T>>(value));
+		for (uint8_t taken = 0; taken < width;)
 		{
-			// Shift and Mask
-			*reinterpret_cast<uint32_t*>(&Data[byte_offset]) = (*reinterpret_cast<const uint32_t*>(&Data[byte_offset]) & ~(value_mask << bit_offset)) | ((value & value_mask) << bit_offset);
-		}
-		else
-		{
-			// Optimization when there is no byte boundary crossing
-			if (bit_offset == 0)
-				*reinterpret_cast<ut*>(&Data[byte_offset]) = (*reinterpret_cast<const ut*>(&Data[byte_offset]) & ~value_mask) | (value & value_mask);
-			else
+			const uint16_t bit = offset + taken;
+			const uint16_t index = bit / 8;
+			const uint8_t shift = bit % 8;
+			const uint8_t count = (8 - shift) < (width - taken) ? (8 - shift) : (width - taken);
+			if (index < MaxDataLen)
 			{
-				*reinterpret_cast<ut*>(&Data[byte_offset]) = (*reinterpret_cast<const ut*>(&Data[byte_offset]) & ~(value_mask << bit_offset)) | ((value & value_mask) << bit_offset);
-
-				// Byte boundary crossing?
-				if (bit_offset + width > type_width)
+				const unsigned field_mask = ((1u << count) - 1u) << shift;
+				const unsigned bits = static_cast<unsigned>((raw >> taken) & ((1u << count) - 1u)) << shift;
+				Data[index] = static_cast<unsigned char>((Data[index] & ~field_mask) | bits);
+				if (DataLen < index + 1)
 				{
-					*reinterpret_cast<ut*>(&Data[byte_offset + sizeof(T)]) = (*reinterpret_cast<const ut*>(&Data[byte_offset + sizeof(T)]) & ~(value_mask >> (type_width - bit_offset))) | ((value & value_mask) >> (type_width - bit_offset));
+					DataLen = index + 1;
 				}
 			}
+			taken += count;
 		}
 
-		// Advance offset
 		offset += width;
 	}
 
@@ -1514,9 +1514,16 @@ public:
 		return value * scale;
 	}
 
+	// A 32-bit IEEE 754 field; NaN (which the "not available" patterns
+	// are) gives `def`.
 	float read_float(uint16_t& offset, float def = N2kFloatNA) const;
 
+	// STRING_FIX: `width` bits of text, up to the first NUL, '@' (AIS
+	// padding) or 0xff.
 	std::string read_string(uint16_t& offset, uint16_t width) const;
+	// STRING_LAU: a length byte (counting itself and the next), an encoding
+	// byte (1: ASCII/UTF-8, 0: UTF-16, returned as its raw bytes), then the
+	// text. An invalid header ends the message: `offset` moves to its end.
 	std::string read_string(uint16_t& offset) const;
 };
 
