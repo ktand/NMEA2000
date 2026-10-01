@@ -230,3 +230,62 @@ TEST_CASE("read_string: STRING_LAU's length counts its two header bytes")
   CHECK(msg.read_string(index) == "");
   CHECK(index == msg.DataLen * 8);
 }
+
+TEST_CASE("read_number/read_double: special values from first_special up give the default")
+{
+  tN2kMsg msg;
+  uint16_t index = 0;
+  msg.write_value<uint16_t>(index, 16, 0xfffe); // out of range
+  msg.write_value<uint16_t>(index, 16, 0xfffc); // a value
+  msg.write_value<int16_t>(index, 16, 0x7ffd);  // reserved (signed)
+
+  index = 0;
+  CHECK(msg.read_number<uint16_t>(index, 16, 7) == 0xfffe); // without: only 0xffff is special
+  index = 0;
+  CHECK(msg.read_number<uint16_t>(index, 16, 7, 0xfffd) == 7);
+  CHECK(msg.read_double<uint16_t>(index, 16, 0.5, -1.0, 0xfffd) == 0xfffc * 0.5);
+  CHECK(msg.read_double<int16_t>(index, 16, 1.0, -1.0, 0x7ffd) == -1.0);
+}
+
+TEST_CASE("read_string_lz: length byte, text, zero")
+{
+  tN2kMsg msg;
+  const unsigned char bytes[] = {3, 'a', 'b', 'c', 0, 0x42};
+  std::memcpy(msg.Data, bytes, sizeof(bytes));
+  msg.DataLen = sizeof(bytes);
+
+  uint16_t index = 0;
+  CHECK(msg.read_string_lz(index) == "abc");
+  CHECK(msg.read_value<uint8_t>(index, 8) == 0x42);
+}
+
+TEST_CASE("read_binary: raw bytes, the last partial")
+{
+  tN2kMsg msg;
+  const unsigned char bytes[] = {0x00, 0x41, 0xff, 0x0d};
+  std::memcpy(msg.Data, bytes, sizeof(bytes));
+  msg.DataLen = sizeof(bytes);
+
+  uint16_t index = 8;
+  const std::string binary = msg.read_binary(index, 20);
+  REQUIRE(binary.size() == 3);
+  CHECK(static_cast<unsigned char>(binary[0]) == 0x41);
+  CHECK(static_cast<unsigned char>(binary[1]) == 0xff);
+  CHECK(static_cast<unsigned char>(binary[2]) == 0x0d);
+  CHECK(index == 28);
+}
+
+TEST_CASE("read_decimal: two digits per byte (not BCD), ends at a byte over 99")
+{
+  tN2kMsg msg;
+  // canboat's example: MMSI 512000953 as 5120009530.
+  const unsigned char bytes[] = {51, 20, 0, 95, 30, 12, 0xff, 7};
+  std::memcpy(msg.Data, bytes, sizeof(bytes));
+  msg.DataLen = sizeof(bytes);
+
+  uint16_t index = 0;
+  CHECK(msg.read_decimal(index, 40) == "5120009530");
+  CHECK(index == 40);
+  CHECK(msg.read_decimal(index, 24) == "12");
+  CHECK(index == 64);
+}

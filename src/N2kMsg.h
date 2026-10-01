@@ -1492,23 +1492,40 @@ public:
 		return std::numeric_limits<T>::max() >> (type_width - bits);
 	}
 
+	// A number field, or `default_value` when it holds a special value:
+	// "unknown" (the field's maximum) and, with `first_special`, everything
+	// from there up (canboat's UnknownValue/OutOfRangeValue/ReservedValue:
+	// max, max - 1 and max - 2 for most numbers).
 	template <typename T>
 	constexpr T read_number(uint16_t& offset, const uint16_t width, T default_value = T{}) const
 	{
+		return read_number<T>(offset, width, default_value, max_number<T>(static_cast<T>(width)));
+	}
+
+	template <typename T>
+	constexpr T read_number(uint16_t& offset, const uint16_t width, T default_value, T first_special) const
+	{
 		auto value = read_value<T>(offset, width);
 
-		if (value == max_number<T>(static_cast<T>(width)))
+		if (value >= first_special)
 			return default_value;
 
 		return value;
 	}
 
+	// read_number() scaled by `scale`.
 	template <typename T>
 	constexpr double read_double(uint16_t& offset, const uint16_t width, double scale, double default_value = T{}) const
 	{
+		return read_double<T>(offset, width, scale, default_value, max_number<T>(static_cast<T>(width)));
+	}
+
+	template <typename T>
+	constexpr double read_double(uint16_t& offset, const uint16_t width, double scale, double default_value, T first_special) const
+	{
 		auto value = read_value<T>(offset, width);
 
-		if (value == max_number<T>(static_cast<T>(width)))
+		if (value >= first_special)
 			return default_value;
 
 		return value * scale;
@@ -1525,6 +1542,16 @@ public:
 	// byte (1: ASCII/UTF-8, 0: UTF-16, returned as its raw bytes), then the
 	// text. An invalid header ends the message: `offset` moves to its end.
 	std::string read_string(uint16_t& offset) const;
+	// STRING_LZ: a length byte (counting neither itself nor the terminating
+	// zero), the text, then a zero byte.
+	std::string read_string_lz(uint16_t& offset) const;
+	// BINARY of `width` bits, as raw bytes (the last one holding the
+	// remaining bits, least significant first).
+	std::string read_binary(uint16_t& offset, uint16_t width) const;
+	// DECIMAL: each byte the binary value of two decimal digits (0..99),
+	// returned as the digits; it ends at the first byte that isn't 0..99
+	// (0xff: not available).
+	std::string read_decimal(uint16_t& offset, uint16_t width) const;
 };
 
 /************************************************************************//**

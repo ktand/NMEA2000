@@ -1230,3 +1230,58 @@ std::string tN2kMsg::read_string(uint16_t& offset) const
 	}
 	return text;
 }
+
+std::string tN2kMsg::read_string_lz(uint16_t& offset) const
+{
+	const uint16_t first = offset / 8;
+	const uint8_t length = field_byte(first);
+
+	if (length == 0xff)
+	{
+		offset = static_cast<uint16_t>(DataLen * 8);
+		return {};
+	}
+
+	offset += (length + 2) * 8;
+
+	std::string text;
+	for (uint16_t index = first + 1; index < first + 1 + length && index < DataLen && index < MaxDataLen; ++index)
+	{
+		text.push_back(static_cast<char>(Data[index]));
+	}
+	return text;
+}
+
+std::string tN2kMsg::read_binary(uint16_t& offset, const uint16_t width) const
+{
+	std::string bytes;
+	uint16_t remaining = width;
+	while (remaining > 0)
+	{
+		const uint8_t bits = remaining < 8 ? remaining : 8;
+		bytes.push_back(static_cast<char>(read_value<uint8_t>(offset, bits)));
+		remaining -= bits;
+	}
+	return bytes;
+}
+
+std::string tN2kMsg::read_decimal(uint16_t& offset, const uint16_t width) const
+{
+	std::string digits;
+	bool ended = false;
+	for (uint16_t i = 0; i < width / 8; ++i)
+	{
+		const uint8_t value = read_value<uint8_t>(offset, 8);
+		if (value > 99)
+		{
+			ended = true;
+		}
+		if (!ended)
+		{
+			digits.push_back(static_cast<char>('0' + value / 10));
+			digits.push_back(static_cast<char>('0' + value % 10));
+		}
+	}
+	return digits;
+}
+
