@@ -33,7 +33,7 @@ project(NMEA2000)
 add_compile_options(
   -Wall
   -Werror
-  -std=c++11
+  -std=c++17
   -g
 )
 
