@@ -568,3 +568,40 @@ TEST_CASE("PGN127501 Binary status report and PGN127502 Switch Bank Control")
     }
   }
 }
+
+TEST_CASE("PGN129794 AIS static data: dimensions and draught are unsigned, not available is 0xffff")
+{
+  tN2kMsg N2kMsg;
+  SetN2kPGN129794(N2kMsg, 5, N2kaisr_Initial, 265000123, 9123456, "SM1ABC", "SEASCOPE", 36, N2kDoubleNA, 4.0,
+                  N2kDoubleNA, N2kDoubleNA, 20750, 52200, N2kDoubleNA, "SANDHAMN", N2kaisv_ITU_R_M_1371_3,
+                  N2kGNSSt_GPS, N2kaisdte_Ready, N2kaischannel_A_VDL_reception);
+
+  // Length @ byte 37, beam 39, from starboard 41, from bow 43, draught 51.
+  REQUIRE(N2kMsg.Data[37] == 0xff);
+  REQUIRE(N2kMsg.Data[38] == 0xff);
+  REQUIRE(N2kMsg.Data[41] == 0xff);
+  REQUIRE(N2kMsg.Data[42] == 0xff);
+  REQUIRE(N2kMsg.Data[51] == 0xff);
+  REQUIRE(N2kMsg.Data[52] == 0xff);
+
+  uint8_t MessageID;
+  tN2kAISRepeat Repeat;
+  uint32_t UserID, IMOnumber;
+  char Callsign[8], Name[21], Destination[21];
+  uint8_t VesselType;
+  double Length, Beam, PosRefStbd, PosRefBow, ETAtime, Draught;
+  uint16_t ETAdate;
+  tN2kAISVersion AISversion;
+  tN2kGNSStype GNSStype;
+  tN2kAISDTE DTE;
+  tN2kAISTransceiverInformation AISinfo;
+  uint8_t SID;
+  REQUIRE(ParseN2kPGN129794(N2kMsg, MessageID, Repeat, UserID, IMOnumber, Callsign, sizeof(Callsign), Name, sizeof(Name),
+                            VesselType, Length, Beam, PosRefStbd, PosRefBow, ETAdate, ETAtime, Draught, Destination,
+                            sizeof(Destination), AISversion, GNSStype, DTE, AISinfo, SID));
+  REQUIRE(N2kIsNA(Length));
+  REQUIRE(Beam == Approx(4.0));
+  REQUIRE(N2kIsNA(PosRefStbd));
+  REQUIRE(N2kIsNA(PosRefBow));
+  REQUIRE(N2kIsNA(Draught));
+}
