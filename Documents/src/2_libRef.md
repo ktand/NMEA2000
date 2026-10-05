@@ -711,6 +711,12 @@ Example how to init and save device source address.
 \copydetails tNMEA2000::DetachMsgHandler
 
 =======================================
+##### tNMEA2000::SetSentMsgHandler
+
+\copybrief tNMEA2000::SetSentMsgHandler
+\copydetails tNMEA2000::SetSentMsgHandler
+
+=======================================
 ##### tNMEA2000::SetISORqstHandler
 
 \copybrief tNMEA2000::SetISORqstHandler

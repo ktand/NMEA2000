@@ -1075,6 +1075,10 @@ protected:
         
     /** \brief Handler callbacks for normal messages */
     void (*MsgHandler)(const tN2kMsg &N2kMsg);  
+    /** \brief Handler callback for messages this node sent, see \ref SetSentMsgHandler */
+    void (*SentMsgHandler)(const tN2kMsg &N2kMsg, void *Context);
+    /** \brief Context passed to \ref SentMsgHandler */
+    void *SentMsgHandlerContext;
     /** \brief Handler callbacks for 'ISORequest' messages */
     bool (*ISORqstHandler)(unsigned long RequestedPGN, unsigned char Requester, int DeviceIndex);
 
@@ -2771,6 +2775,26 @@ public:
      * \param _MsgHandler Message handler
      */
     void DetachMsgHandler(tMsgHandler *_MsgHandler);
+
+    /*********************************************************************//**
+     * \brief Set a handler for the messages this node sends
+     *
+     * Called by \ref SendMsg with every message it accepted for sending
+     * (sent, or queued in the library's frame buffer to be sent), after
+     * its source address has been set: the device's own messages and the
+     * ones the library sends by itself (address claim, heartbeat, product
+     * information, replies to requests). Messages SendMsg refused (listen
+     * only mode, no room, address claim in progress) are not passed on.
+     * Fast packet and ISO multi-packet messages are passed whole, once.
+     *
+     * Use it e.g. to log or record the node's own traffic next to what it
+     * receives. It runs in the caller of SendMsg, so it should return
+     * quickly.
+     *
+     * \param _SentMsgHandler Callback, or 0 to remove it
+     * \param _Context        Passed to the callback as it is
+     */
+    void SetSentMsgHandler(void (*_SentMsgHandler)(const tN2kMsg &N2kMsg, void *Context), void *_Context=0);
 
     /*********************************************************************//**
      * \brief Set the message handler for incoming ISO Requests

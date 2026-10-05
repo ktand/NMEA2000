@@ -722,6 +722,8 @@ tNMEA2000::tNMEA2000() {
 
   OnOpen=0;
   MsgHandler=0;
+  SentMsgHandler=0;
+  SentMsgHandlerContext=0;
   MsgHandlers=0;
   ISORqstHandler=0;
 
@@ -1573,6 +1575,7 @@ bool tNMEA2000::SendMsg(const tN2kMsg &N2kMsg, int DeviceIndex) {
         }
       };
       if ( ForwardOwnMessages() ) ForwardMessage(N2kMsg);
+      if ( result && SentMsgHandler!=0 ) SentMsgHandler(N2kMsg,SentMsgHandlerContext);
       break;
     case dm_ClearText:
       result=true;
@@ -2687,6 +2690,12 @@ void tNMEA2000::SetOnOpen(void (*_OnOpen)()) {
 //*****************************************************************************
 void tNMEA2000::SetMsgHandler(void (*_MsgHandler)(const tN2kMsg &N2kMsg)) {
   MsgHandler=_MsgHandler;
+}
+
+//*****************************************************************************
+void tNMEA2000::SetSentMsgHandler(void (*_SentMsgHandler)(const tN2kMsg &N2kMsg, void *Context), void *_Context) {
+  SentMsgHandler=_SentMsgHandler;
+  SentMsgHandlerContext=_Context;
 }
 
 //*****************************************************************************

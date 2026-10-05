@@ -54,3 +54,11 @@ add_executable(N2kMsgBitFieldTests
 target_link_libraries(N2kMsgBitFieldTests catch)
 target_link_libraries(N2kMsgBitFieldTests nmea2000)
 add_test(N2kMsgBitField N2kMsgBitFieldTests)
+
+add_executable(SentMsgHandlerTests
+  SentMsgHandlerTest.cpp
+)
+
+target_link_libraries(SentMsgHandlerTests catch)
+target_link_libraries(SentMsgHandlerTests nmea2000)
+add_test(SentMsgHandler SentMsgHandlerTests)

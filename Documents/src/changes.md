@@ -1,6 +1,10 @@
 # Changes to the Library {#changes}
 \tableofcontents
 
+## 05.10.2026
+- tNMEA2000::SetSentMsgHandler: a callback with every message SendMsg
+  accepted, for logging or recording the node's own traffic.
+
 ## 01.11.2025
 - Improved AddVarStr handling. Some PGN fields max size is define 
   in characters and some like AIS must be forced to ASCII
