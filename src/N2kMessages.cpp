@@ -908,7 +908,6 @@ void SetN2kPGN127751(tN2kMsg &N2kMsg, unsigned char Instance, double Voltage, do
     N2kMsg.Add2ByteDouble(Voltage,0.1);
     N2kMsg.Add3ByteDouble(Current,0.01);
     N2kMsg.AddByte(0xff); // Reserved
-    N2kMsg.AddByte(0xff); // Reserved
 }
 
 //*****************************************************************************
